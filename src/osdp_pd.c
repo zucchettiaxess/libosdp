@@ -304,7 +304,6 @@ static int pd_decode_command(struct osdp_pd *pd, uint8_t *buf, int len)
 			break;
 		}
 		cmd.id = OSDP_CMD_POLLING;
-		cmd.status.type = OSDP_STATUS_REPORT_LOCAL;
 		do_command_callback(pd, &cmd);
 		/* Check if we have external events in the queue */
 		if (pd_event_dequeue(pd, &event) == 0) {
@@ -981,7 +980,6 @@ static int pd_receive_and_process_command(struct osdp_pd *pd)
 		return OSDP_PD_ERR_WAIT;
 	case OSDP_ERR_PKT_SKIP:
 		cmd.id = OSDP_CMD_ALIVE;
-		cmd.status.type = OSDP_STATUS_REPORT_LOCAL;
 		do_command_callback(pd, &cmd);
 		osdp_phy_state_reset(pd, false);
 		return OSDP_PD_ERR_IGNORE;
