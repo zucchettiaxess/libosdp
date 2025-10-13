@@ -716,9 +716,9 @@ enum osdp_cmd_e {
 	OSDP_CMD_FILE_TX,     /**< File transfer command */
 	OSDP_CMD_STATUS,      /**< Status report command */
 	OSDP_CMD_COMSET_DONE, /**< Comset completed; Alias for OSDP_CMD_COMSET */
-	OSDP_CMD_SENTINEL,    /**< Max command value */
 	OSDP_CMD_ALIVE,
-	OSDP_CMD_POLLING
+	OSDP_CMD_POLLING,
+	OSDP_CMD_SENTINEL     /**< Max command value */
 };
 
 /**
