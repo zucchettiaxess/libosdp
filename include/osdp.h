@@ -1094,6 +1094,15 @@ OSDP_EXPORT
 void osdp_cp_refresh(osdp_t *ctx);
 
 /**
+ * @brief Periodic refresh method. Must be called by the application at least
+ * once every 50ms to meet OSDP timing requirements.
+ *
+ * @param ctx OSDP context
+ */
+OSDP_EXPORT
+void osdp_cp_refresh_ex(osdp_t *ctx);
+
+/**
  * @brief Cleanup all osdp resources. The context pointer is no longer valid
  * after this call.
  *
@@ -1315,6 +1324,15 @@ const char *osdp_get_source_info();
  */
 OSDP_EXPORT
 void osdp_get_status_mask(const osdp_t *ctx, uint8_t *bitmask);
+
+/**
+ * @brief Get the status online/offline of a specific PD.
+ *
+ * @param bitmask pointer to an array of bytes containing the status online of all the pd.
+ * @param index of the pd to be tested.
+ */
+OSDP_EXPORT
+bool is_pd_online(uint8_t* mask, int pd_idx);
 
 /**
  * @brief Get a bit mask of number of PD that are online and have an active

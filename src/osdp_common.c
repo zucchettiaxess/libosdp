@@ -271,3 +271,14 @@ void osdp_get_status_mask(const osdp_t *ctx, uint8_t *bitmask)
 		}
 	}
 }
+OSDP_EXPORT
+bool is_pd_online(uint8_t* mask, int pd_idx)
+{
+    bool is_online = false;
+
+    uint8_t idx_mask = pd_idx/8;
+
+    is_online = (mask[idx_mask] & (1 << (pd_idx % 8))) != 0;
+
+    return is_online;
+}
