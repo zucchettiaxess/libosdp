@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include "osdp_export.h"
 
+#ifndef CONFIG_NO_GENERATED_HEADERS
+#include "osdp_config.h" /* generated */
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
