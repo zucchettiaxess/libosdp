@@ -1295,6 +1295,7 @@ static void notify_command_status(struct osdp_pd *pd, int status)
 			app_cmd = OSDP_CMD_MFG;
 			break;
 		}
+		__fallthrough;
 	default:
 		return;
 	}
