@@ -220,11 +220,25 @@ static bool validate_command(struct osdp_pd *pd, struct osdp_cmd *cmd)
 			result = false;
 		}
 		break;
+	case OSDP_CMD_OUTPUT:
+	case OSDP_CMD_TEXT:
+	case OSDP_CMD_KEYSET:
+	case OSDP_CMD_COMSET:
+	case OSDP_CMD_MFG:
+	case OSDP_CMD_FILE_TX:
+	case OSDP_CMD_STATUS:
+	case OSDP_CMD_COMSET_DONE:
+	case OSDP_CMD_SENTINEL:
+		break;
+	default:
+		LOG_ERR("Unknown cmd id %d", cmd->id);
+		BUG();
 	}
 
 	if (!result) {
 		LOG_ERR("Command validation failed!");
 	}
+
 	return result;
 }
 
