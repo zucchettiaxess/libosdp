@@ -49,6 +49,11 @@
 /* ---------- Deprecation (with message) ---------- */
 
 /* Prefer C++ [[deprecated("msg")]] if available, otherwise compiler specifics. */
+
+#ifdef API_DEPRECATED
+#undef API_DEPRECATED
+#endif
+
 #if defined(__cplusplus) && API_HAS_CPP_ATTR(deprecated)
   /* [[deprecated("msg")]] supported */
   #define API_DEPRECATED(msg) [[deprecated(msg)]]
