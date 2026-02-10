@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include "osdp_export.h"
 
+#ifndef CONFIG_NO_GENERATED_HEADERS
+#include "osdp_config.h" /* generated */
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -718,6 +722,8 @@ enum osdp_cmd_e {
 	OSDP_CMD_FILE_TX,     /**< File transfer command */
 	OSDP_CMD_STATUS,      /**< Status report command */
 	OSDP_CMD_COMSET_DONE, /**< Comset completed; Alias for OSDP_CMD_COMSET */
+	OSDP_CMD_ALIVE,
+	OSDP_CMD_POLLING,
 	OSDP_CMD_SENTINEL     /**< Max command value */
 };
 
@@ -756,10 +762,17 @@ struct osdp_cmd {
 /*          OSDP Events            */
 /* ------------------------------- */
 
-#define OSDP_EVENT_CARDREAD_MAX_DATALEN   64
-#define OSDP_EVENT_KEYPRESS_MAX_DATALEN   64
-#define OSDP_EVENT_MFGREP_MAX_DATALEN     128
+#ifndef OSDP_EVENT_CARDREAD_MAX_DATALEN
+	#define OSDP_EVENT_CARDREAD_MAX_DATALEN   64
+#endif
 
+#ifndef OSDP_EVENT_KEYPRESS_MAX_DATALEN
+	#define OSDP_EVENT_KEYPRESS_MAX_DATALEN   64
+#endif
+
+#ifndef OSDP_EVENT_MFGREP_MAX_DATALEN
+	#define OSDP_EVENT_MFGREP_MAX_DATALEN     128
+#endif
 /**
  * @brief Various card formats that a PD can support. This is sent to CP
  * when a PD must report a card read.
@@ -1083,6 +1096,15 @@ OSDP_EXPORT
 void osdp_cp_refresh(osdp_t *ctx);
 
 /**
+ * @brief Periodic refresh method. Must be called by the application at least
+ * once every 50ms to meet OSDP timing requirements.
+ *
+ * @param ctx OSDP context
+ */
+OSDP_EXPORT
+void osdp_cp_refresh_ex(osdp_t *ctx);
+
+/**
  * @brief Cleanup all osdp resources. The context pointer is no longer valid
  * after this call.
  *
@@ -1344,6 +1366,15 @@ const char *osdp_get_source_info();
  */
 OSDP_EXPORT
 void osdp_get_status_mask(const osdp_t *ctx, uint8_t *bitmask);
+
+/**
+ * @brief Get the status online/offline of a specific PD.
+ *
+ * @param bitmask pointer to an array of bytes containing the status online of all the pd.
+ * @param index of the pd to be tested.
+ */
+OSDP_EXPORT
+bool is_pd_online(uint8_t* mask, int pd_idx);
 
 /**
  * @brief Get a bit mask of number of PD that are online and have an active

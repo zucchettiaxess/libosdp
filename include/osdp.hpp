@@ -91,6 +91,11 @@ public:
 		osdp_cp_refresh(_ctx);
 	}
 
+    void refresh_ex()
+    {
+        osdp_cp_refresh_ex(_ctx);
+    }
+
 	[[deprecated]]
 	int send_command(int pd, struct osdp_cmd *cmd)
 	{

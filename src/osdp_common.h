@@ -24,10 +24,6 @@
 
 #include <osdp.h>
 
-#ifndef CONFIG_NO_GENERATED_HEADERS
-#include "osdp_config.h" /* generated */
-#endif
-
 #ifndef NULL
 #define NULL ((void *)0)
 #endif

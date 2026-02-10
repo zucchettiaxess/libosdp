@@ -889,11 +889,12 @@ static int cp_phy_state_update(struct osdp_pd *pd)
 			cp_phy_state_wait(pd, OSDP_CMD_RETRY_WAIT_MS);
 			return OSDP_CP_ERR_CAN_YIELD;
 		}
-		if (osdp_millis_since(pd->phy_tstamp) > OSDP_RESP_TOUT_MS) {
+        if (osdp_millis_since(pd->phy_tstamp) > MAX(OSDP_RESP_TOUT_MS, (pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
 			if (pd->phy_retry_count < OSDP_CMD_MAX_RETRIES) {
 				pd->phy_retry_count += 1;
-				LOG_WRN("No response in 200ms; probing (%d)",
-					pd->phy_retry_count);
+				LOG_WRN("No response in %dms; probing (%d)",
+                        MAX(OSDP_RESP_TOUT_MS, (pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate),
+                        pd->phy_retry_count);
 				cp_phy_state_wait(pd, OSDP_CMD_RETRY_WAIT_MS);
 				return OSDP_CP_ERR_CAN_YIELD;
 			}
@@ -1657,6 +1658,67 @@ void osdp_cp_refresh(osdp_t *ctx)
 		SET_CURRENT_PD(ctx, next_pd_idx);
 		refresh_count++;
 	}
+}
+
+void osdp_cp_refresh_ex(osdp_t *ctx)
+{
+    input_check(ctx);
+
+    unsigned int i = 0;
+    struct osdp_pd *pd;
+    bool is_one_pd_online = false;
+    uint8_t mask[(OSDP_PD_MAX + 7) / 8] = {0};
+
+    osdp_get_status_mask(ctx, mask);
+
+    // Verifica se almeno un PD � online
+    for (i = 0; i < sizeof(mask); i++) {
+        if (mask[i] != 0) {
+            is_one_pd_online = true;
+            break;
+        }
+    }
+
+    static int last_offline_idx = 0;
+
+    int next_pd_idx, refresh_count = 0;
+    while(refresh_count < NUM_PD(ctx)) {
+        pd = GET_CURRENT_PD(ctx);
+        if (is_pd_online(mask, pd->idx) || !is_one_pd_online) {
+            if (cp_refresh(pd) < 0)
+                continue; // this is necessary to run over all online pd whithout reset the refresh_count and then pass to offline pd
+
+            if(!is_one_pd_online){
+                last_offline_idx = 0;
+            }
+        }
+
+        next_pd_idx = (pd->idx + 1) % NUM_PD(ctx);
+        SET_CURRENT_PD(ctx, next_pd_idx);
+        refresh_count++;
+    }
+
+    // Se almeno un PD � online, interroga UNA testa offline a rotazione
+    if (is_one_pd_online) {
+        int attempts = 0;
+        while (attempts < NUM_PD(ctx)) {
+            int idx = (last_offline_idx + attempts) % NUM_PD(ctx);
+
+            SET_CURRENT_PD(ctx, idx);
+            pd = GET_CURRENT_PD(ctx);
+
+            if (!is_pd_online(mask, pd->idx)) {
+                while(cp_refresh(pd) < 0){
+                    continue;
+                }
+                last_offline_idx = (pd->idx + 1) % NUM_PD(ctx);
+                break; // solo UNA offline per giro
+                // Salva l'indice per la prossima volta (rotazione offline)
+            }
+            else
+                attempts++;
+        }
+    }
 }
 
 void osdp_cp_set_event_callback(osdp_t *ctx, cp_event_callback_t cb, void *arg)
