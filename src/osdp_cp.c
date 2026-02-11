@@ -889,11 +889,11 @@ static int cp_phy_state_update(struct osdp_pd *pd)
 			cp_phy_state_wait(pd, OSDP_CMD_RETRY_WAIT_MS);
 			return OSDP_CP_ERR_CAN_YIELD;
 		}
-        if (osdp_millis_since(pd->phy_tstamp) > (int64_t)MAX(OSDP_RESP_TOUT_MS, (pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
+        if (osdp_millis_since(pd->phy_tstamp) > (int64_t)MAX(OSDP_RESP_TOUT_MS, ((int64_t)pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
 			if (pd->phy_retry_count < OSDP_CMD_MAX_RETRIES) {
 				pd->phy_retry_count += 1;
 				LOG_WRN("No response in %dms; probing (%d)",
-                        MAX(OSDP_RESP_TOUT_MS, (pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate),
+                        (int64_t)MAX(OSDP_RESP_TOUT_MS, (int64_t)(pd->packet_buf_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate),
                         pd->phy_retry_count);
 				cp_phy_state_wait(pd, OSDP_CMD_RETRY_WAIT_MS);
 				return OSDP_CP_ERR_CAN_YIELD;
