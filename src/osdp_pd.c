@@ -1063,7 +1063,7 @@ static int pd_receive_and_process_command(struct osdp_pd *pd)
 static inline void pd_error_reset(struct osdp_pd *pd)
 {
 	sc_deactivate(pd);
-	osdp_phy_state_reset(pd, false);
+	osdp_phy_state_reset(pd, true);
 }
 
 static void osdp_pd_update(struct osdp_pd *pd)
