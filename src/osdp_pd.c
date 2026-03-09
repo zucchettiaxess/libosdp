@@ -1030,7 +1030,13 @@ static int pd_receive_and_process_command(struct osdp_pd *pd)
 	case OSDP_ERR_PKT_NONE:
 		break;
 	case OSDP_ERR_PKT_NACK:
-		return OSDP_PD_ERR_REPLY;
+		if (pd->ephemeral_data[0] == OSDP_PD_NAK_SEQ_NUM) {
+			LOG_WRN("NAK(SEQ_NUM); restarting communication");
+			osdp_phy_state_reset(pd, true);
+			sc_deactivate(pd);
+			return OSDP_PD_ERR_REPLY;
+		}
+		__fallthrough;
 	case OSDP_ERR_PKT_NO_DATA:
 		return OSDP_PD_ERR_NO_DATA;
 	case OSDP_ERR_PKT_WAIT:
