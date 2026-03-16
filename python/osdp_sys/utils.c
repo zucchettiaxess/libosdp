@@ -7,6 +7,28 @@
 #include <stdarg.h>
 #include "module.h"
 
+#if PY_VERSION_HEX < 0x030c0000
+static PyObject *PyErr_GetRaisedException(void)
+{
+	PyObject *type, *value, *tb;
+	PyErr_Fetch(&type, &value, &tb);
+	PyErr_NormalizeException(&type, &value, &tb);
+	if (tb != NULL) {
+		PyException_SetTraceback(value, tb);
+		Py_DECREF(tb);
+	}
+	Py_XDECREF(type);
+	return value;
+}
+
+static void PyErr_SetRaisedException(PyObject *exc)
+{
+	PyObject *type = (PyObject *)Py_TYPE(exc);
+	Py_INCREF(type);
+	PyErr_Restore(type, exc, NULL);
+}
+#endif
+
 int pyosdp_dict_add_bool(PyObject *dict, const char *key, bool val)
 {
 	int ret;
@@ -311,6 +333,58 @@ static void channel_flush_callback(void *data)
 	Py_XDECREF(result);
 }
 
+#ifdef OPT_OSDP_RX_ZERO_COPY
+static int channel_read_packet_callback(void *data, const uint8_t **buf, int *max_len)
+{
+	Py_ssize_t len;
+	PyObject *channel = data;
+	PyObject *result;
+	static uint8_t *packet_buf = NULL;
+
+	result = PyObject_CallMethod(channel, "read_packet", NULL);
+
+	/* No packet ready */
+	if (result == Py_None || result == NULL) {
+		Py_XDECREF(result);
+		return -1;
+	}
+
+	if (!PyBytes_Check(result)) {
+		Py_DECREF(result);
+		return -1;
+	}
+
+	/* Store the Python bytes object in channel data for later release */
+	PyArg_Parse(result, "y#", &packet_buf, &len);
+
+	/* Keep the result alive until release_packet is called */
+	PyObject_SetAttrString(channel, "_current_packet", result);
+
+	*buf = packet_buf;
+	*max_len = (int)len;
+
+	return 0;
+}
+
+static void channel_release_packet_callback(void *data, const uint8_t *buf)
+{
+	PyObject *channel = data;
+	PyObject *result, *packet_obj;
+
+	ARG_UNUSED(buf);
+
+	/* Release the stored packet object */
+	packet_obj = PyObject_GetAttrString(channel, "_current_packet");
+	if (packet_obj && packet_obj != Py_None) {
+		Py_DECREF(packet_obj);
+		PyObject_SetAttrString(channel, "_current_packet", Py_None);
+	}
+
+	result = PyObject_CallMethod(channel, "release_packet", "O", Py_None);
+	Py_XDECREF(result);
+}
+#endif
+
 void pyosdp_get_channel(PyObject *channel, struct osdp_channel *ops)
 {
 	int id = 0;
@@ -322,10 +396,25 @@ void pyosdp_get_channel(PyObject *channel, struct osdp_channel *ops)
 	}
 
 	ops->id = id;
-	ops->recv = channel_read_callback;
 	ops->send = channel_write_callback;
 	ops->flush = channel_flush_callback;
 	ops->data = channel;
+
+#ifdef OPT_OSDP_RX_ZERO_COPY
+	/* Check if channel has read_packet method */
+	if (PyObject_HasAttrString(channel, "read_packet")) {
+		ops->recv = NULL;
+		ops->recv_pkt = channel_read_packet_callback;
+		ops->release_pkt = channel_release_packet_callback;
+	} else {
+		ops->recv = channel_read_callback;
+		ops->recv_pkt = NULL;
+		ops->release_pkt = NULL;
+	}
+#else
+	ops->recv = channel_read_callback;
+#endif
+
 	Py_INCREF(channel);
 }
 
