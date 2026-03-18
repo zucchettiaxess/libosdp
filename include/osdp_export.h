@@ -48,6 +48,14 @@
 
 /* ---------- Deprecation (with message) ---------- */
 
+/*
+ * CHANGED: Undefine API_DEPRECATED before redefining it. On macOS the SDK
+ * header <os/availability.h> defines API_DEPRECATED with a different
+ * signature (platform/version specifiers, not a plain string), which causes
+ * macro expansion errors when osdp.h uses OSDP_DEPRECATED_EXPORT("msg").
+ */
+#undef API_DEPRECATED
+
 /* Prefer C++ [[deprecated("msg")]] if available, otherwise compiler specifics. */
 #if defined(__cplusplus) && API_HAS_CPP_ATTR(deprecated)
   /* [[deprecated("msg")]] supported */
