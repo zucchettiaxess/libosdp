@@ -22,11 +22,11 @@
 #define USE_CUSTOM_LOGGER
 #include <utils/logger.h>
 
-#include <osdp.h>
-
 #ifndef CONFIG_NO_GENERATED_HEADERS
 #include "osdp_config.h" /* generated */
 #endif
+
+#include <osdp.h>
 
 #ifndef NULL
 #define NULL ((void *)0)

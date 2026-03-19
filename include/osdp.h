@@ -746,6 +746,8 @@ enum osdp_cmd_e {
 	OSDP_CMD_FILE_TX,     /**< File transfer command */
 	OSDP_CMD_STATUS,      /**< Status report command */
 	OSDP_CMD_COMSET_DONE, /**< Comset completed; Alias for OSDP_CMD_COMSET */
+	OSDP_CMD_ALIVE,
+	OSDP_CMD_POLLING,
 	OSDP_CMD_SENTINEL     /**< Max command value */
 };
 
@@ -796,9 +798,17 @@ struct osdp_cmd {
 /*          OSDP Events            */
 /* ------------------------------- */
 
-#define OSDP_EVENT_CARDREAD_MAX_DATALEN   64
-#define OSDP_EVENT_KEYPRESS_MAX_DATALEN   64
-#define OSDP_EVENT_MFGREP_MAX_DATALEN     128
+#ifndef OSDP_EVENT_CARDREAD_MAX_DATALEN
+	#define OSDP_EVENT_CARDREAD_MAX_DATALEN   64
+#endif
+
+#ifndef OSDP_EVENT_KEYPRESS_MAX_DATALEN
+	#define OSDP_EVENT_KEYPRESS_MAX_DATALEN   64
+#endif
+
+#ifndef OSDP_EVENT_MFGREP_MAX_DATALEN
+	#define OSDP_EVENT_MFGREP_MAX_DATALEN     128
+#endif
 
 /**
  * @brief Various card formats that a PD can support. This is sent to CP
