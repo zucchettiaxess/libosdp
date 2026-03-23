@@ -137,6 +137,12 @@ add_definitions(${LIB_OSDP_DEFINITIONS})
 ################################################
 if (OPT_BUILD_STATIC)
 
+if (OPT_OSDP_PACKET_TRACE OR OPT_OSDP_DATA_TRACE)
+	list(APPEND LIB_OSDP_UTILS_SRC
+			${PROJECT_SOURCE_DIR}/utils/src/pcap_gen.c
+	)
+endif()
+
 set(LIB_OSDP_STATIC osdpstatic)
 set(LIB_TARGET ${LIB_OSDP_STATIC}) ## to be used in libosdp.pc.in
 add_library(${LIB_OSDP_STATIC} STATIC ${LIB_OSDP_SOURCES} ${LIB_OSDP_UTILS_SRC})
