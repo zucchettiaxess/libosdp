@@ -86,6 +86,21 @@ public:
 		return osdp_cp_add_pd(_ctx, num_pd, info);
 	}
 
+    int disable_pd(int pd)
+    {
+        return osdp_cp_disable_pd(_ctx, pd);
+    }
+
+    int enable_pd(int pd)
+    {
+        return osdp_cp_enable_pd(_ctx, pd);
+    }
+
+    bool is_pd_enabled(int pd)
+    {
+        return osdp_cp_is_pd_enabled(_ctx, pd);
+    }
+
 	void refresh()
 	{
 		osdp_cp_refresh(_ctx);
