@@ -374,9 +374,8 @@ static int pd_decode_command(struct osdp_pd *pd, uint8_t *buf, int len)
 			break;
 		}
 		cmd.id = OSDP_CMD_POLLING;
-		if (pd->command_callback) {
-			pd->command_callback(pd->command_callback_arg, &cmd);
-		}
+		do_command_callback(pd, &cmd);
+		
 		/* Check if we have external events in the queue */
 		if (pd_event_dequeue(pd, &queued_event) == 0) {
 			ret = pd_translate_event(pd, queued_event);
@@ -1040,9 +1039,7 @@ static int pd_receive_and_process_command(struct osdp_pd *pd)
 		return OSDP_PD_ERR_WAIT;
 	case OSDP_ERR_PKT_SKIP:
 		cmd.id = OSDP_CMD_ALIVE;
-		if (pd->command_callback) {
-			pd->command_callback(pd->command_callback_arg, &cmd);
-		}
+		do_command_callback(pd, &cmd);
 		osdp_phy_state_reset(pd, false);
 		return OSDP_PD_ERR_IGNORE;
 	case OSDP_ERR_PKT_FMT:
@@ -1094,7 +1091,7 @@ static void osdp_pd_update(struct osdp_pd *pd)
 	}
 
 	if (ret == OSDP_PD_ERR_WAIT &&
-	    osdp_millis_since(pd->tstamp) < (int64_t)MAX(OSDP_RESP_TOUT_MS, (int64_t)(pd->packet_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
+	    osdp_millis_since(pd->tstamp) < MAX(OSDP_RESP_TOUT_MS, (pd->packet_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
 		return;
 	}
 
