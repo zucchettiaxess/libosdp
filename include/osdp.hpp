@@ -117,6 +117,11 @@ public:
 		return osdp_cp_submit_command(_ctx, pd, cmd);
 	}
 
+    int flush_commands(int pd)
+    {
+        return osdp_cp_flush_commands(_ctx, pd);
+    }
+
 	void set_event_callback(cp_event_callback_t cb, void *arg)
 	{
 		osdp_cp_set_event_callback(_ctx, cb, arg);

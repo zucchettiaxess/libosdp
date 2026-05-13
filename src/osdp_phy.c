@@ -527,6 +527,17 @@ static int phy_check_packet(struct osdp_pd *pd, uint8_t *buf, int pkt_len)
 	}
 	pkt = (struct osdp_packet_header *)buf;
 
+	/* validate PD address */
+	pd_addr = pkt->pd_address & 0x7F;
+	if (pd_addr != pd->address && pd_addr != 0x7F) {
+		/* not addressed to us and was not broadcasted */
+		if (is_cp_mode(pd)) {
+			LOG_ERR("Invalid pd address %d", pd_addr);
+			return OSDP_ERR_PKT_CHECK;
+		}
+		return OSDP_ERR_PKT_SKIP;
+	}
+
 	/* validate CRC/checksum */
 	if (pkt->control & PKT_CONTROL_CRC) {
 		pkt_len -= 2; /* consume CRC */
@@ -544,17 +555,6 @@ static int phy_check_packet(struct osdp_pd *pd, uint8_t *buf, int pkt_len)
 			LOG_ERR("Invalid checksum %02x/%02x", comp, cur);
 			return OSDP_ERR_PKT_FMT;
 		}
-	}
-
-	/* validate PD address */
-	pd_addr = pkt->pd_address & 0x7F;
-	if (pd_addr != pd->address && pd_addr != 0x7F) {
-		/* not addressed to us and was not broadcasted */
-		if (is_cp_mode(pd)) {
-			LOG_ERR("Invalid pd address %d", pd_addr);
-			return OSDP_ERR_PKT_CHECK;
-		}
-		return OSDP_ERR_PKT_SKIP;
 	}
 
 	/* validate sequence number */
@@ -875,6 +875,7 @@ void osdp_phy_state_reset(struct osdp_pd *pd, bool is_error)
 	pd->packet_len = 0;
 	pd->phy_state = 0;
 	pd->packet_buf = pd->packet_buf_store;
+	pd->cmd_id = CMD_INVALID;
 	if (is_error) {
 		pd->phy_retry_count = 0;
 		phy_reset_seq_number(pd);
