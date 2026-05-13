@@ -1086,7 +1086,8 @@ static void osdp_pd_update(struct osdp_pd *pd)
 	}
 
 	if (ret == OSDP_PD_ERR_WAIT &&
-	    osdp_millis_since(pd->tstamp) < MAX(OSDP_RESP_TOUT_MS, (pd->packet_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate)) {
+	    (osdp_millis_since(pd->tstamp) < MAX(OSDP_RESP_TOUT_MS, (pd->packet_len * OSDP_RESP_TOUT_K * 1000) / pd->baud_rate) ||
+		pd->cmd_id == CMD_INVALID)) {
 		return;
 	}
 
