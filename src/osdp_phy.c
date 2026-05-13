@@ -875,7 +875,6 @@ void osdp_phy_state_reset(struct osdp_pd *pd, bool is_error)
 	pd->packet_len = 0;
 	pd->phy_state = 0;
 	pd->packet_buf = pd->packet_buf_store;
-	pd->cmd_id = CMD_INVALID;
 	if (is_error) {
 		pd->phy_retry_count = 0;
 		phy_reset_seq_number(pd);
